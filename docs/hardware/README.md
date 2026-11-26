@@ -115,6 +115,7 @@ Prefer a **5 V / ≥2 A** source with margin. Details: [power.md](power.md).
 | [components.md](components.md) | Inventory, voltages, limits |
 | [pinout.md](pinout.md) | GPIO map + allocation rules |
 | [esp32dev-port.md](esp32dev-port.md) | Experimental ESP32-WROOM-32/LEDC port: decisions, verification, open items |
+| [esp32dev-wiring-reference.pdf](esp32dev-wiring-reference.pdf) | Printable bench wiring sheet for the ESP32-WROOM-32/LEDC build |
 | [wiring.md](wiring.md) | Advanced: breakout harness |
 | [../3d/assembly-modular.md](../3d/assembly-modular.md) | Advanced: mount breakouts in the desk |
 | [power.md](power.md) | Budget, brownout symptoms, single-USB policy |

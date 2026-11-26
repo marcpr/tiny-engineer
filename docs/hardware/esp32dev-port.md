@@ -5,6 +5,8 @@ session (human or agent) can pick this up without re-deriving it. Pin table
 and avoided-pins list are the single source of truth in
 [pinout.md](pinout.md#experimental-esp32-wroom-32-devkit-ledc-no-pca9685) —
 this file is the *why* and *what's left*, not a duplicate of the *what*.
+A printable one-page version for the bench is
+[esp32dev-wiring-reference.pdf](esp32dev-wiring-reference.pdf).
 
 ## Goal
 
