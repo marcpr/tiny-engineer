@@ -6,6 +6,8 @@
 
 **[Watch the demo](https://youtu.be/RX_QRxdXMjg)** · [Build your own](#build-your-own) · [Community builds](#community-builds) · [How it works](#how-it-works)
 
+> **This fork adds an experimental port for the plain ESP32-WROOM-32 DevKit** (LEDC servo PWM, no PCA9685) alongside the default C3/PCA9685 board — see [docs/hardware/esp32dev-port.md](docs/hardware/esp32dev-port.md).
+
 A small robot on your desk. It moves, changes its face, and rings a bell as your coding AI agent works.
 
 | Your agent… | The robot… |
