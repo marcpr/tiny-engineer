@@ -2,9 +2,39 @@
 
 #include <cstdint>
 
+#include "servos.h"
+
 // =====================================================
 // PINOUT
 // =====================================================
+
+#if defined(TE_BOARD_ESP32DEV)
+
+// Experimental ESP32-WROOM-32 DevKit target: 5 servos driven directly by the
+// ESP32's own LEDC peripheral, no PCA9685. See docs/hardware/pinout.md.
+
+// I2C -> OLED only (Arduino defaults)
+constexpr int I2C_SDA = 21;
+constexpr int I2C_SCL = 22;
+
+// I2S -> MAX98357A
+constexpr int I2S_BCLK = 14;
+constexpr int I2S_LRC  = 15;
+constexpr int I2S_DIN  = 26;
+
+// Default Extension-port GPIO for the push-button extension (settings `push_button_pin`).
+constexpr int PUSH_BUTTON_PIN_DEFAULT = 13;
+
+// WS2812 RGB
+constexpr int RGB_LED_PIN = 4;
+
+// One GPIO per servo channel (index == SERVO_HEAD..SERVO_BODY), each its own
+// LEDC-attached pin. No chip-level output-enable: disableServoOutputs() /
+// enableServoOutputs() are software no-ops here — per-channel release (0
+// duty) is what turns a servo's pulses off, same as on the PCA9685.
+constexpr int SERVO_GPIO_PINS[SERVO_COUNT] = {25, 27, 32, 33, 18};
+
+#else
 
 // I2C -> PCA9685 + OLED
 constexpr int I2C_SDA = 0;   // GP0
@@ -26,6 +56,10 @@ constexpr int RGB_LED_PIN = 10;
 constexpr bool PCA9685_OE_WIRED = true;
 constexpr int PCA9685_OE_PIN = 5;
 
+constexpr uint8_t PCA9685_ADDRESS = 0x40;
+
+#endif  // TE_BOARD_ESP32DEV
+
 // =====================================================
 // AUDIO
 // =====================================================
@@ -34,10 +68,8 @@ constexpr int PCA9685_OE_PIN = 5;
 constexpr int SAMPLE_RATE = 22050;
 
 // =====================================================
-// PCA9685 / SERVOS
+// SERVOS
 // =====================================================
-
-constexpr uint8_t PCA9685_ADDRESS = 0x40;
 
 constexpr int SERVO_STEP_MS = 10;
 

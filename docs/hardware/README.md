@@ -26,6 +26,8 @@ Firmware (`src/main.cpp`) is the robot application: Wi-Fi, settings, hardware te
 
 One ESP32-C3 module owns all logic. Servo PWM is offloaded to a PCA9685 so pulse generation does not depend on ESP32 timing. Audio is I2S into a class-D amp. Display and servo driver share one I2C bus. On the default build those chips are on the main control board. The advanced path puts the same chips on breakouts — the diagram is the same either way.
 
+Experimental alternative: the `esp32dev` PlatformIO environment (`TE_BOARD_ESP32DEV`) targets a plain ESP32-WROOM-32 DevKit and drives the 5 servos directly off the ESP32's own LEDC peripheral instead — no PCA9685, no shared servo/OLED I2C bus contention, but pulse generation then does depend on ESP32 timing (LEDC is a hardware peripheral, not software PWM, so this is still glitch-free under normal load). See [pinout.md](pinout.md#experimental-esp32-wroom-32-devkit-ledc-no-pca9685) for the pin map and [esp32dev-port.md](esp32dev-port.md) for the port's design decisions, verification results, and open items.
+
 ```mermaid
 flowchart TB
   USB["USB 5V / GND<br/>as drawn"]
@@ -112,6 +114,7 @@ Prefer a **5 V / ≥2 A** source with margin. Details: [power.md](power.md).
 | [order-main-control-board.md](order-main-control-board.md) | Order the PCB / PCBA (any fab; JLCPCB walkthrough) |
 | [components.md](components.md) | Inventory, voltages, limits |
 | [pinout.md](pinout.md) | GPIO map + allocation rules |
+| [esp32dev-port.md](esp32dev-port.md) | Experimental ESP32-WROOM-32/LEDC port: decisions, verification, open items |
 | [wiring.md](wiring.md) | Advanced: breakout harness |
 | [../3d/assembly-modular.md](../3d/assembly-modular.md) | Advanced: mount breakouts in the desk |
 | [power.md](power.md) | Budget, brownout symptoms, single-USB policy |

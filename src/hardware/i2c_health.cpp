@@ -44,18 +44,22 @@ struct Device {
   I2cFaultTracker tracker;
 };
 
+#ifndef TE_BOARD_ESP32DEV
 bool servoDriverHealthy();
 RecoveryResult recoverServoDriver(uint32_t now);
 void logServoDriverDetail();
+#endif  // TE_BOARD_ESP32DEV
 bool oledHealthy();
 void stopOledWrites();
 RecoveryResult recoverOled(uint32_t now);
 
+#ifndef TE_BOARD_ESP32DEV
 Device g_servoDriver = {
   // At a fault the outputs go off, so a corrupted setup cannot keep driving
   // the servos. Recovery turns them back on once the setup reads back right.
   "pca9685", servoDriverHealthy, disableServoOutputs, recoverServoDriver, logServoDriverDetail, {}
 };
+#endif  // TE_BOARD_ESP32DEV
 Device g_oled = {"oled", oledHealthy, stopOledWrites, recoverOled, nullptr, {}};
 
 bool g_started = false;
@@ -66,6 +70,7 @@ bool g_oledExpected = false;
 // buffers a transfer leaks Wire's lock, and the next restart would wait on
 // that lock forever.
 bool g_wireUp = true;
+#ifndef TE_BOARD_ESP32DEV
 // Set when the PCA9685 is found without its setup; cleared once the OLED has
 // been set up again. Kept across failed attempts: a retry finds the PCA9685's
 // setup restored and would otherwise skip the panel.
@@ -86,6 +91,7 @@ ServoRecoveryStep g_servoStep = ServoRecoveryStep::Probe;
 uint32_t g_channelsOffMs = 0;
 // Registers from the latest PCA9685 check, for the fault log line.
 ServoPwmDriverState g_servoDriverState = {};
+#endif  // TE_BOARD_ESP32DEV
 
 // A device interrupted mid-byte keeps driving SDA until it has been clocked
 // through the rest of that byte. Clock it out, send a STOP, and report where
@@ -176,6 +182,7 @@ void noteRecovery(Device& device, bool ok) {
   serialLogPrintln(" ms");
 }
 
+#ifndef TE_BOARD_ESP32DEV
 // Restarts Wire with the lines freed. False when Wire did not come back or a
 // line is still held: every transfer would fail, so the caller skips the
 // probes and their timeouts. Only the PCA9685's recovery calls this, so servo
@@ -206,6 +213,7 @@ bool restartBus() {
 
   return usable;
 }
+#endif  // TE_BOARD_ESP32DEV
 
 // The restart puts the last frame back on the panel; a sleeping robot keeps
 // it dark.
@@ -213,6 +221,7 @@ bool restartOledForSleepState() {
   return restartOled(!isSleeping());
 }
 
+#ifndef TE_BOARD_ESP32DEV
 // Both chips share a supply, so a PCA9685 that lost its setup is reason to set
 // the panel up again too, even when it still answers. A failure here while the
 // OLED counts as up clears oledAvailable, and the OLED's own checks then take
@@ -254,7 +263,9 @@ void logServoDriverDetail() {
   serialLogPrint(" prescale=0x");
   serialLogPrint(g_servoDriverState.prescale, HEX);
 }
+#endif  // TE_BOARD_ESP32DEV
 
+#ifndef TE_BOARD_ESP32DEV
 bool servoDriverAnswers() {
   return g_wireUp && i2cDeviceConnected(PCA9685_ADDRESS);
 }
@@ -332,6 +343,7 @@ RecoveryResult recoverServoDriver(uint32_t now) {
 
   return endServoRecovery(RecoveryResult::Failed);
 }
+#endif  // TE_BOARD_ESP32DEV
 
 // oledAvailable is part of the check: a restart that failed outside an OLED
 // fault cleared it, and only a fault and its recovery set it again.
@@ -424,26 +436,48 @@ void updateI2cHealth() {
     return;
   }
 
+#ifdef TE_BOARD_ESP32DEV
+  if (g_oledExpected) {
+    service(g_oled);
+  }
+#else
   // At most one chip's work per tick, so a tick costs about one transfer
   // timeout at worst. The OLED's turn comes a tick later.
   if (!service(g_servoDriver) && g_oledExpected) {
     service(g_oled);
   }
+#endif  // TE_BOARD_ESP32DEV
 }
 
 bool i2cServoDriverUp() {
+#ifdef TE_BOARD_ESP32DEV
+  // No I2C servo driver on this backend: LEDC writes go straight to the pin.
+  return true;
+#else
   return !g_servoDriver.tracker.down();
+#endif  // TE_BOARD_ESP32DEV
 }
 
 void i2cNoteServoDriverFault(const char* cause) {
+#ifdef TE_BOARD_ESP32DEV
+  (void)cause;
+#else
   const uint32_t now = millis();
 
   if (g_servoDriver.tracker.noteFault(now)) {
     enterFault(g_servoDriver, now, cause);
   }
+#endif  // TE_BOARD_ESP32DEV
 }
 
 I2cHealth i2cHealth() {
+#ifdef TE_BOARD_ESP32DEV
+  return {
+    !g_oledExpected || oledAvailable,
+    I2cDeviceHealth{true, 0, 0, 0},
+    deviceHealth(g_oled, oledAvailable)
+  };
+#else
   const bool servoDriverUp = i2cServoDriverUp();
 
   return {
@@ -451,4 +485,5 @@ I2cHealth i2cHealth() {
     deviceHealth(g_servoDriver, servoDriverUp),
     deviceHealth(g_oled, oledAvailable)
   };
+#endif  // TE_BOARD_ESP32DEV
 }

@@ -40,7 +40,9 @@ void setup() {
   Serial.setRxBufferSize(4096);
   Serial.setTxBufferSize(4096);
   Serial.begin(115200);
+#if SOC_USB_SERIAL_JTAG_SUPPORTED
   Serial.setTxTimeoutMs(0);
+#endif
   serialLinkWatchUsb();
   delay(1000);
 
@@ -59,8 +61,10 @@ void setup() {
 
   serialLogPrintln();
   serialLogPrintln("Starting I2C");
-  serialLogPrintln("SDA = GP0");
-  serialLogPrintln("SCL = GP1");
+  serialLogPrint("SDA = GP");
+  serialLogPrintln(I2C_SDA);
+  serialLogPrint("SCL = GP");
+  serialLogPrintln(I2C_SCL);
 
   initI2cBus();
 

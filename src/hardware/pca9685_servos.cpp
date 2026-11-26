@@ -9,12 +9,20 @@
 #include "serial_log.h"
 #include "settings/settings.h"
 
+#ifndef TE_BOARD_ESP32DEV
+
 bool pca9685Connected() {
   return i2cDeviceConnected(PCA9685_ADDRESS);
 }
 
+#endif  // TE_BOARD_ESP32DEV
+
 void initPca9685() {
   serialLogPrintln();
+
+#ifdef TE_BOARD_ESP32DEV
+  serialLogPrintln("Servo PWM: ESP32 LEDC (no PCA9685)");
+#else
   serialLogPrintln("Checking PCA9685 at 0x40...");
 
   if (!pca9685Connected()) {
@@ -32,6 +40,7 @@ void initPca9685() {
   }
 
   serialLogPrintln("PCA9685 found");
+#endif  // TE_BOARD_ESP32DEV
 
   initServoPwmDriver();
 }

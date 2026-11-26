@@ -4,6 +4,7 @@
 
 #include "pins.h"
 #include "servos.h"
+#include "hardware/servo_backend.h"
 
 class ServoWrapper {
 public:
@@ -58,29 +59,13 @@ private:
 };
 
 ServoWrapper& servoAt(int index);
-void initServoOutputPin();
-void disableServoOutputs();
-void enableServoOutputs();
 void initServoPwmDriver();
-struct ServoPwmDriverState {
-  bool answered;
-  uint8_t mode1;
-  uint8_t mode2;
-  uint8_t prescale;
-};
-
-// Reads the PCA9685's setup registers. True when it answers, is awake with
-// auto-increment on, and holds the servo output mode and prescale.
-bool servoPwmDriverState(ServoPwmDriverState& state);
 // Bringing the outputs back, in steps a caller can spread over several loop
 // passes: setUpServoPwmDriver() if the setup was lost, writeServoChannelsOff(),
 // at least kServoOutputSettleMs, then enableServoOutputsWithChannels(). Each
 // returns false, with the outputs off, when a write failed or did not read
 // back.
 constexpr uint32_t kServoOutputSettleMs = 25;  // more than one 20 ms period
-// Wakes the PCA9685 and writes its output mode and frequency, outputs off.
-// True when the setup reads back.
-bool setUpServoPwmDriver();
 // Turns every servo channel fully off, outputs off.
 bool writeServoChannelsOff();
 // Turns the outputs on, then writes every channel from the firmware's state;

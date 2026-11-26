@@ -2,7 +2,41 @@
 
 Source of truth: [`include/pins.h`](../../include/pins.h). This file must match that header.
 
-## Assigned ESP32-C3-Zero GPIO
+## Experimental: ESP32-WROOM-32 DevKit (LEDC, no PCA9685)
+
+`TE_BOARD_ESP32DEV` build (PlatformIO env `esp32dev`): a plain ESP32-WROOM-32
+DevKit, not the main control board. The 5 servos are driven directly by the
+ESP32's own LEDC peripheral instead of a PCA9685 — there is no PCA9685 on
+this target, and no chip-level output-enable; `disableServoOutputs()` /
+`enableServoOutputs()` are software no-ops, and per-channel release (0% LEDC
+duty) is what turns a servo's pulses off. See [robot-movement.md](../robot-movement.md)
+for what each servo index does.
+
+| Function | GPIO | Constant | Goes to |
+| --- | --- | --- | --- |
+| Servo 0 — Head | GPIO25 | `SERVO_GPIO_PINS[0]` | Head pitch |
+| Servo 1 — Neck | GPIO27 | `SERVO_GPIO_PINS[1]` | Neck yaw |
+| Servo 2 — Left hand | GPIO32 | `SERVO_GPIO_PINS[2]` | Left hand |
+| Servo 3 — Right hand | GPIO33 | `SERVO_GPIO_PINS[3]` | Right hand |
+| Servo 4 — Body | GPIO18 | `SERVO_GPIO_PINS[4]` | Body / torso |
+| I2S BCLK | GPIO14 | `I2S_BCLK` | MAX98357A BCLK |
+| I2S LRCLK / WS | GPIO15 | `I2S_LRC` | MAX98357A **LRC** |
+| I2S DATA OUT | GPIO26 | `I2S_DIN` | MAX98357A DIN |
+| I2C SDA | GPIO21 (Arduino default) | `I2C_SDA` | OLED SDA |
+| I2C SCL | GPIO22 (Arduino default) | `I2C_SCL` | OLED SCL |
+| WS2812 RGB | GPIO4 | `RGB_LED_PIN` | — |
+| Push button | GPIO13 | `PUSH_BUTTON_PIN_DEFAULT` | — |
+
+Avoided: GPIO0 (BOOT strapping), GPIO1/GPIO3 (UART0 — flashing/serial
+console), GPIO2 (strapping, often an onboard LED), GPIO5/GPIO12 (strapping;
+12 sets flash voltage mode — do not touch), GPIO6–GPIO11 (bonded to SPI
+flash, not usable), GPIO34–GPIO39 (input-only, no PWM/I2S/I2C output).
+
+No on-chip temperature sensor on this chip (`chipTempCelsius()` always
+returns `false`; the C3's internal sensor is a C3/S2/S3/C6 feature). No
+native USB-CDC either — `Serial` is the plain UART0-over-USB-bridge console.
+
+## Assigned ESP32-C3-Zero GPIO (stock main control board)
 
 | Function | ESP32-C3-Zero GPIO | Constant | Goes to |
 | --- | --- | --- | --- |
